@@ -76,9 +76,11 @@ func writeTo(writer CSVWriter, in interface{}, omitHeaders bool, ignoreFieldsInd
 	}
 	getFilteredFields := func(fields []fieldInfo, ignoreFieldsIndexes []int) []fieldInfo {
 		var newFields []fieldInfo
-		for _, field := range fields {
-			if !containsInt(ignoreFieldsIndexes, field.IndexChain[0]) {
-				newFields = append(newFields, field)
+		if len(ignoreFieldsIndexes) > 0 {
+			for _, field := range fields {
+				if !containsInt(ignoreFieldsIndexes, field.IndexChain[0]) {
+					newFields = append(newFields, field)
+				}
 			}
 		}
 		return newFields
