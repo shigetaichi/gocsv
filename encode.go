@@ -65,7 +65,7 @@ func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool) err
 	return writer.Error()
 }
 
-func writeTo(writer CSVWriter, in interface{}, omitHeaders bool) error {
+func writeTo(writer CSVWriter, in interface{}, omitHeaders bool, ignoreFieldsIndexes []int) error {
 	inValue, inType := getConcreteReflectValueAndType(in) // Get the concrete type (not pointer) (Slice<?> or Array<?>)
 	if err := ensureInType(inType); err != nil {
 		return err
