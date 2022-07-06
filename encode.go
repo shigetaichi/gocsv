@@ -14,7 +14,7 @@ func newEncoder(out io.Writer) *encoder {
 	return &encoder{out}
 }
 
-func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool) error {
+func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool, removeFieldsIndexes []int) error {
 	// Get the first value. It wil determine the header structure.
 	firstValue, ok := <-c
 	if !ok {
@@ -25,7 +25,8 @@ func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool) err
 		return err
 	}
 	inInnerWasPointer := inType.Kind() == reflect.Ptr
-	inInnerStructInfo := getStructInfo(inType) // Get the inner struct info to get CSV annotations
+	inInnerStructInfo := getStructInfo(inType)                                                  // Get the inner struct info to get CSV annotations
+	inInnerStructInfo.Fields = getFilteredFields(inInnerStructInfo.Fields, removeFieldsIndexes) // Filtered out ignoreFields from all fields
 	csvHeadersLabels := make([]string, len(inInnerStructInfo.Fields))
 	for i, fieldInfo := range inInnerStructInfo.Fields { // Used to write the header (first line) in CSV
 		csvHeadersLabels[i] = fieldInfo.getFirstKey()
@@ -65,7 +66,7 @@ func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool) err
 	return writer.Error()
 }
 
-func writeTo(writer CSVWriter, in interface{}, omitHeaders bool) error {
+func writeTo(writer CSVWriter, in interface{}, omitHeaders bool, removeFieldsIndexes []int) error {
 	inValue, inType := getConcreteReflectValueAndType(in) // Get the concrete type (not pointer) (Slice<?> or Array<?>)
 	if err := ensureInType(inType); err != nil {
 		return err
@@ -75,6 +76,9 @@ func writeTo(writer CSVWriter, in interface{}, omitHeaders bool) error {
 		return err
 	}
 	inInnerStructInfo := getStructInfo(inInnerType) // Get the inner struct info to get CSV annotations
+
+	inInnerStructInfo.Fields = getFilteredFields(inInnerStructInfo.Fields, removeFieldsIndexes) // Filtered out ignoreFields from all fields
+
 	csvHeadersLabels := make([]string, len(inInnerStructInfo.Fields))
 	for i, fieldInfo := range inInnerStructInfo.Fields { // Used to write the header (first line) in CSV
 		csvHeadersLabels[i] = fieldInfo.getFirstKey()
@@ -161,4 +165,25 @@ func getInnerField(outInner reflect.Value, outInnerWasPointer bool, index []int)
 		return getInnerField(nextField, nextField.Kind() == reflect.Ptr, index[1:])
 	}
 	return getFieldAsString(oi.FieldByIndex(index))
+}
+
+func containsInt(s []int, int int) bool {
+	for _, v := range s {
+		if v == int {
+			return true
+		}
+	}
+	return false
+}
+
+func getFilteredFields(fields []fieldInfo, removeFieldsIndexes []int) []fieldInfo {
+	var newFields []fieldInfo
+	if len(removeFieldsIndexes) > 0 {
+		for _, field := range fields {
+			if !containsInt(removeFieldsIndexes, field.IndexChain[0]) {
+				newFields = append(newFields, field)
+			}
+		}
+	}
+	return newFields
 }
