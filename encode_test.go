@@ -349,7 +349,7 @@ func Test_writeToChan(t *testing.T) {
 		}
 		close(c)
 	}()
-	if err := MarshalChan(c, NewSafeCSVWriter(csv.NewWriter(e.out))); err != nil {
+	if err := MarshalChan(c, NewSafeCSVWriter(csv.NewWriter(e.out)), []int{}); err != nil {
 		t.Fatal(err)
 	}
 	lines, err := csv.NewReader(&b).ReadAll()
