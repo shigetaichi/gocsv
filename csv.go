@@ -114,67 +114,67 @@ func getCSVReader(in io.Reader) CSVReader {
 // Marshal functions
 
 // MarshalFile saves the interface as CSV in the file.
-func MarshalFile(in interface{}, file *os.File, ignoreFieldsIndexes []int) (err error) {
-	return Marshal(in, file, ignoreFieldsIndexes)
+func MarshalFile(in interface{}, file *os.File, removeFieldsIndexes []int) (err error) {
+	return Marshal(in, file, removeFieldsIndexes)
 }
 
 // MarshalString returns the CSV string from the interface.
-func MarshalString(in interface{}, ignoreFieldsIndexes []int) (out string, err error) {
+func MarshalString(in interface{}, removeFieldsIndexes []int) (out string, err error) {
 	bufferString := bytes.NewBufferString(out)
-	if err := Marshal(in, bufferString, ignoreFieldsIndexes); err != nil {
+	if err := Marshal(in, bufferString, removeFieldsIndexes); err != nil {
 		return "", err
 	}
 	return bufferString.String(), nil
 }
 
 // MarshalStringWithoutHeaders returns the CSV string from the interface.
-func MarshalStringWithoutHeaders(in interface{}, ignoreFieldsIndexes []int) (out string, err error) {
+func MarshalStringWithoutHeaders(in interface{}, removeFieldsIndexes []int) (out string, err error) {
 	bufferString := bytes.NewBufferString(out)
-	if err := MarshalWithoutHeaders(in, bufferString, ignoreFieldsIndexes); err != nil {
+	if err := MarshalWithoutHeaders(in, bufferString, removeFieldsIndexes); err != nil {
 		return "", err
 	}
 	return bufferString.String(), nil
 }
 
 // MarshalBytes returns the CSV bytes from the interface.
-func MarshalBytes(in interface{}, ignoreFieldsIndexes []int) (out []byte, err error) {
+func MarshalBytes(in interface{}, removeFieldsIndexes []int) (out []byte, err error) {
 	bufferString := bytes.NewBuffer(out)
-	if err := Marshal(in, bufferString, ignoreFieldsIndexes); err != nil {
+	if err := Marshal(in, bufferString, removeFieldsIndexes); err != nil {
 		return nil, err
 	}
 	return bufferString.Bytes(), nil
 }
 
 // Marshal returns the CSV in writer from the interface.
-func Marshal(in interface{}, out io.Writer, ignoreFieldsIndexes []int) (err error) {
+func Marshal(in interface{}, out io.Writer, removeFieldsIndexes []int) (err error) {
 	writer := getCSVWriter(out)
-	return writeTo(writer, in, false, ignoreFieldsIndexes)
+	return writeTo(writer, in, false, removeFieldsIndexes)
 }
 
 // MarshalWithoutHeaders returns the CSV in writer from the interface.
-func MarshalWithoutHeaders(in interface{}, out io.Writer, ignoreFieldsIndexes []int) (err error) {
+func MarshalWithoutHeaders(in interface{}, out io.Writer, removeFieldsIndexes []int) (err error) {
 	writer := getCSVWriter(out)
-	return writeTo(writer, in, true, ignoreFieldsIndexes)
+	return writeTo(writer, in, true, removeFieldsIndexes)
 }
 
 // MarshalChan returns the CSV read from the channel.
-func MarshalChan(c <-chan interface{}, out CSVWriter, ignoreFieldsIndexes []int) error {
-	return writeFromChan(out, c, false, ignoreFieldsIndexes)
+func MarshalChan(c <-chan interface{}, out CSVWriter, removeFieldsIndexes []int) error {
+	return writeFromChan(out, c, false, removeFieldsIndexes)
 }
 
 // MarshalChanWithoutHeaders returns the CSV read from the channel.
-func MarshalChanWithoutHeaders(c <-chan interface{}, out CSVWriter, ignoreFieldsIndexes []int) error {
-	return writeFromChan(out, c, true, ignoreFieldsIndexes)
+func MarshalChanWithoutHeaders(c <-chan interface{}, out CSVWriter, removeFieldsIndexes []int) error {
+	return writeFromChan(out, c, true, removeFieldsIndexes)
 }
 
 // MarshalCSV returns the CSV in writer from the interface.
-func MarshalCSV(in interface{}, out CSVWriter, ignoreFieldsIndexes []int) (err error) {
-	return writeTo(out, in, false, ignoreFieldsIndexes)
+func MarshalCSV(in interface{}, out CSVWriter, removeFieldsIndexes []int) (err error) {
+	return writeTo(out, in, false, removeFieldsIndexes)
 }
 
 // MarshalCSVWithoutHeaders returns the CSV in writer from the interface.
-func MarshalCSVWithoutHeaders(in interface{}, out CSVWriter, ignoreFieldsIndexes []int) (err error) {
-	return writeTo(out, in, true, ignoreFieldsIndexes)
+func MarshalCSVWithoutHeaders(in interface{}, out CSVWriter, removeFieldsIndexes []int) (err error) {
+	return writeTo(out, in, true, removeFieldsIndexes)
 }
 
 // --------------------------------------------------------------------------
