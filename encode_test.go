@@ -383,7 +383,7 @@ func TestRenamedTypesMarshal(t *testing.T) {
 	// Switch back to default for tests executed after this
 	defer SetCSVWriter(DefaultCSVWriter)
 
-	csvContent, err := MarshalString(&samples)
+	csvContent, err := MarshalString(&samples, []int{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -395,7 +395,7 @@ func TestRenamedTypesMarshal(t *testing.T) {
 	samples = []RenamedSample{
 		{RenamedFloatUnmarshaler: 4.2, RenamedFloatDefault: 1.5},
 	}
-	_, err = MarshalString(&samples)
+	_, err = MarshalString(&samples, []int{})
 	if _, ok := err.(MarshalError); !ok {
 		t.Fatalf("Expected UnmarshalError, got %v", err)
 	}
@@ -414,7 +414,7 @@ func TestCustomTagSeparatorMarshal(t *testing.T) {
 		TagSeparator = ","
 	}()
 
-	csvContent, err := MarshalString(&samples)
+	csvContent, err := MarshalString(&samples, []int{})
 	if err != nil {
 		t.Fatal(err)
 	}

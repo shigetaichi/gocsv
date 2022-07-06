@@ -114,23 +114,23 @@ func getCSVReader(in io.Reader) CSVReader {
 // Marshal functions
 
 // MarshalFile saves the interface as CSV in the file.
-func MarshalFile(in interface{}, file *os.File) (err error) {
-	return Marshal(in, file, []int{})
+func MarshalFile(in interface{}, file *os.File, ignoreFieldsIndexes []int) (err error) {
+	return Marshal(in, file, ignoreFieldsIndexes)
 }
 
 // MarshalString returns the CSV string from the interface.
-func MarshalString(in interface{}) (out string, err error) {
+func MarshalString(in interface{}, ignoreFieldsIndexes []int) (out string, err error) {
 	bufferString := bytes.NewBufferString(out)
-	if err := Marshal(in, bufferString, []int{}); err != nil {
+	if err := Marshal(in, bufferString, ignoreFieldsIndexes); err != nil {
 		return "", err
 	}
 	return bufferString.String(), nil
 }
 
 // MarshalStringWithoutHeaders returns the CSV string from the interface.
-func MarshalStringWithoutHeaders(in interface{}) (out string, err error) {
+func MarshalStringWithoutHeaders(in interface{}, ignoreFieldsIndexes []int) (out string, err error) {
 	bufferString := bytes.NewBufferString(out)
-	if err := MarshalWithoutHeaders(in, bufferString, []int{}); err != nil {
+	if err := MarshalWithoutHeaders(in, bufferString, ignoreFieldsIndexes); err != nil {
 		return "", err
 	}
 	return bufferString.String(), nil
