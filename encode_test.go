@@ -125,6 +125,44 @@ func Test_writeTo_multipleTags(t *testing.T) {
 	assertLine(t, []string{"def", "234"}, lines[2])
 }
 
+func Test_writeTo_slice(t *testing.T) {
+	b := bytes.Buffer{}
+	e := &encoder{out: &b}
+
+	type TestType struct {
+		Key   string
+		Items []int
+	}
+
+	s := []TestType{
+		{
+			Key:   "test1",
+			Items: []int{1, 2, 3},
+		},
+		{
+			Key:   "test2",
+			Items: []int{4, 5, 6},
+		},
+	}
+
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false); err != nil {
+		t.Fatal(err)
+	}
+
+	lines, err := csv.NewReader(&b).ReadAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(lines) != 3 {
+		t.Fatalf("expected 3 lines, got %d", len(lines))
+	}
+
+	assertLine(t, []string{"Key", "Items"}, lines[0])
+	assertLine(t, []string{"test1", "[1,2,3]"}, lines[1])
+	assertLine(t, []string{"test2", "[4,5,6]"}, lines[2])
+}
+
 func Test_writeTo_slice_structs(t *testing.T) {
 	b := bytes.Buffer{}
 	e := &encoder{out: &b}
@@ -258,6 +296,41 @@ func Test_writeTo_embedmarshal(t *testing.T) {
 	assertLine(t, []string{"foo"}, lines[0])
 	assertLine(t, []string{"bar"}, lines[1])
 
+}
+
+func Test_writeTo_embedmarshalCSV(t *testing.T) {
+
+	// First, create our test data
+	b := new(bytes.Buffer)
+	e := &encoder{out: b}
+	s := []*EmbedMarshalCSV{
+		{
+			Symbol: "test",
+			Timestamp: &MarshalCSVSample{
+				Seconds: 1656460798,
+				Nanos:   693201614,
+			},
+		},
+	}
+
+	// Next, attempt to write our test data to a CSV format
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false); err != nil {
+		t.Fatal(err)
+	}
+
+	// Now, read in the data we just wrote
+	lines, err := csv.NewReader(b).ReadAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Finally, verify the structure of the data
+	if len(lines) != 2 {
+		t.Fatalf("expected 2 lines, got %d", len(lines))
+	}
+
+	assertLine(t, []string{"symbol", "timestamp"}, lines[0])
+	assertLine(t, []string{"test", "1656460798693201614"}, lines[1])
 }
 
 func Test_writeTo_complex_embed(t *testing.T) {

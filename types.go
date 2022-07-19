@@ -280,6 +280,10 @@ func setField(field reflect.Value, value string, omitEmpty bool) error {
 				}
 				field.SetFloat(f)
 			case reflect.Slice, reflect.Struct:
+				if value == "" {
+					return nil
+				}
+
 				err := json.Unmarshal([]byte(value), field.Addr().Interface())
 				if err != nil {
 					return err
@@ -362,6 +366,15 @@ func getFieldAsString(field reflect.Value) (str string, err error) {
 					if err != nil {
 						return str, err
 					}
+				case reflect.Slice:
+					fallthrough
+				case reflect.Array:
+					b, err := json.Marshal(field.Addr().Interface())
+					if err != nil {
+						return str, err
+					}
+
+					str = string(b)
 				}
 			} else {
 				return str, nil
