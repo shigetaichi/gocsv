@@ -102,6 +102,7 @@ func writeTo(writer CSVWriter, in interface{}, omitHeaders bool, removeFieldsInd
 				return err
 			}
 			csvHeadersLabels[j] = inInnerFieldValue
+			csvHeadersLabels = reorderColumns(csvHeadersLabels, []uint{1, 2, 3, 4, 5})
 		}
 		if err := writer.Write(csvHeadersLabels); err != nil {
 			return err
@@ -193,4 +194,12 @@ func getFilteredFields(fields []fieldInfo, removeFieldsIndexes []int) []fieldInf
 		newFields = fields
 	}
 	return newFields
+}
+
+func reorderColumns(row []string, colIndex []uint) []string {
+	newLine := make([]string, len(colIndex))
+	for from, to := range colIndex {
+		newLine[to] = row[from]
+	}
+	return newLine
 }
