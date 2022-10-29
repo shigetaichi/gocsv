@@ -69,7 +69,7 @@ func TestUnmarshalListOfStructsAfterMarshal(t *testing.T) {
 	innerWriter := csv.NewWriter(buffer)
 	innerWriter.Comma = '|'
 	csvWriter := NewSafeCSVWriter(innerWriter)
-	if err := MarshalCSV(inData, csvWriter); err != nil {
+	if err := MarshalCSV(inData, csvWriter, []int{}); err != nil {
 		t.Fatalf("Error marshalling data to CSV: %#v", err)
 	}
 

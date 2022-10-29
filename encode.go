@@ -189,6 +189,8 @@ func getFilteredFields(fields []fieldInfo, removeFieldsIndexes []int) []fieldInf
 				newFields = append(newFields, field)
 			}
 		}
+	} else {
+		newFields = fields
 	}
 	return newFields
 }
