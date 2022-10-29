@@ -146,7 +146,7 @@ func Test_writeTo_slice(t *testing.T) {
 		},
 	}
 
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false); err != nil {
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -315,7 +315,7 @@ func Test_writeTo_embedmarshalCSV(t *testing.T) {
 	}
 
 	// Next, attempt to write our test data to a CSV format
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false); err != nil {
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -448,7 +448,7 @@ func Test_MarshalChan_ClosedChannel(t *testing.T) {
 	c := make(chan interface{})
 	close(c)
 
-	if err := MarshalChan(c, NewSafeCSVWriter(csv.NewWriter(e.out))); !errors.Is(err, ErrChannelIsClosed) {
+	if err := MarshalChan(c, NewSafeCSVWriter(csv.NewWriter(e.out)), []int{}); !errors.Is(err, ErrChannelIsClosed) {
 		t.Fatal(err)
 	}
 }
