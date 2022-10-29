@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -24,6 +25,14 @@ func assertLine(t *testing.T, expected, actual []string) {
 	}
 }
 
+func generateFakeColIndex(len int) []int {
+	colIndex := make([]int, len)
+	for i := range colIndex {
+		colIndex[i] = i
+	}
+	return colIndex
+}
+
 func Test_writeTo(t *testing.T) {
 	b := bytes.Buffer{}
 	e := &encoder{out: &b}
@@ -33,7 +42,9 @@ func Test_writeTo(t *testing.T) {
 		{Foo: "f", Bar: 1, Baz: "baz", Frop: 0.1, Blah: &blah, SPtr: &sptr},
 		{Foo: "e", Bar: 3, Baz: "b", Frop: 6.0 / 13, Blah: nil, SPtr: nil},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
+
+	colIndex := generateFakeColIndex(reflect.TypeOf(Sample{}).NumField())
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -56,7 +67,10 @@ func Test_writeTo_Time(t *testing.T) {
 	s := []DateTime{
 		{Foo: d},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, true, []int{}); err != nil {
+
+	colIndex := generateFakeColIndex(reflect.TypeOf(DateTime{}).NumField())
+
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, true, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -87,7 +101,8 @@ func Test_writeTo_NoHeaders(t *testing.T) {
 		{Foo: "f", Bar: 1, Baz: "baz", Frop: 0.1, Blah: &blah, SPtr: &sptr},
 		{Foo: "e", Bar: 3, Baz: "b", Frop: 6.0 / 13, Blah: nil, SPtr: nil},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, true, []int{}); err != nil {
+	colIndex := generateFakeColIndex(reflect.TypeOf(Sample{}).NumField())
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, true, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -109,7 +124,8 @@ func Test_writeTo_multipleTags(t *testing.T) {
 		{Foo: "abc", Bar: 123},
 		{Foo: "def", Bar: 234},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
+	colIndex := generateFakeColIndex(reflect.TypeOf(MultiTagSample{}).NumField())
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -146,7 +162,8 @@ func Test_writeTo_slice(t *testing.T) {
 		},
 	}
 
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
+	colIndex := generateFakeColIndex(reflect.TypeOf(TestType{}).NumField())
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -181,7 +198,9 @@ func Test_writeTo_slice_structs(t *testing.T) {
 			},
 		},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
+
+	colIndex := generateFakeColIndex(11)
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -210,7 +229,8 @@ func Test_writeTo_embed(t *testing.T) {
 			Grault: math.Pi,
 		},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
+	colIndex := generateFakeColIndex(10)
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -239,7 +259,9 @@ func Test_writeTo_embedptr(t *testing.T) {
 			Grault: math.Pi,
 		},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
+
+	colIndex := generateFakeColIndex(10)
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -260,7 +282,9 @@ func Test_writeTo_embedptr_nil(t *testing.T) {
 	s := []EmbedPtrSample{
 		{},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
+
+	colIndex := generateFakeColIndex(10)
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -283,7 +307,9 @@ func Test_writeTo_embedmarshal(t *testing.T) {
 			Foo: &MarshalSample{Dummy: "bar"},
 		},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
+
+	colIndex := generateFakeColIndex(1)
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -314,8 +340,10 @@ func Test_writeTo_embedmarshalCSV(t *testing.T) {
 		},
 	}
 
+	colIndex := generateFakeColIndex(2)
+
 	// Next, attempt to write our test data to a CSV format
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}); err != nil {
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
@@ -358,7 +386,9 @@ func Test_writeTo_complex_embed(t *testing.T) {
 			Corge:      "hhh",
 		},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), sfs, false, []int{}); err != nil {
+
+	colIndex := generateFakeColIndex(11)
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), sfs, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 	lines, err := csv.NewReader(&b).ReadAll()
@@ -400,7 +430,8 @@ func Test_writeTo_complex_inner_struct_embed(t *testing.T) {
 		},
 	}
 
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), sfs, true, []int{}); err != nil {
+	colIndex := generateFakeColIndex(2)
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), sfs, true, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 	lines, err := csv.NewReader(&b).ReadAll()
@@ -423,7 +454,9 @@ func Test_writeToChan(t *testing.T) {
 		}
 		close(c)
 	}()
-	if err := MarshalChan(c, NewSafeCSVWriter(csv.NewWriter(e.out)), []int{}); err != nil {
+
+	colIndex := generateFakeColIndex(7)
+	if err := MarshalChan(c, NewSafeCSVWriter(csv.NewWriter(e.out)), []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 	lines, err := csv.NewReader(&b).ReadAll()
@@ -448,7 +481,8 @@ func Test_MarshalChan_ClosedChannel(t *testing.T) {
 	c := make(chan interface{})
 	close(c)
 
-	if err := MarshalChan(c, NewSafeCSVWriter(csv.NewWriter(e.out)), []int{}); !errors.Is(err, ErrChannelIsClosed) {
+	colIndex := generateFakeColIndex(7)
+	if err := MarshalChan(c, NewSafeCSVWriter(csv.NewWriter(e.out)), []int{}, colIndex); !errors.Is(err, ErrChannelIsClosed) {
 		t.Fatal(err)
 	}
 }
@@ -468,7 +502,8 @@ func TestRenamedTypesMarshal(t *testing.T) {
 	// Switch back to default for tests executed after this
 	defer SetCSVWriter(DefaultCSVWriter)
 
-	csvContent, err := MarshalString(&samples, []int{})
+	colIndex := generateFakeColIndex(reflect.TypeOf(RenamedSample{}).NumField())
+	csvContent, err := MarshalString(&samples, []int{}, colIndex)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -480,7 +515,8 @@ func TestRenamedTypesMarshal(t *testing.T) {
 	samples = []RenamedSample{
 		{RenamedFloatUnmarshaler: 4.2, RenamedFloatDefault: 1.5},
 	}
-	_, err = MarshalString(&samples, []int{})
+
+	_, err = MarshalString(&samples, []int{}, colIndex)
 	if _, ok := err.(MarshalError); !ok {
 		t.Fatalf("Expected UnmarshalError, got %v", err)
 	}
@@ -499,7 +535,8 @@ func TestCustomTagSeparatorMarshal(t *testing.T) {
 		TagSeparator = ","
 	}()
 
-	csvContent, err := MarshalString(&samples, []int{})
+	colIndex := generateFakeColIndex(reflect.TypeOf(RenamedSample{}).NumField())
+	csvContent, err := MarshalString(&samples, []int{}, colIndex)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -528,7 +565,9 @@ func (e MarshalError) Error() string {
 func Benchmark_MarshalCSVWithoutHeaders(b *testing.B) {
 	dst := NewSafeCSVWriter(csv.NewWriter(ioutil.Discard))
 	for n := 0; n < b.N; n++ {
-		err := MarshalCSVWithoutHeaders([]Sample{{}}, dst, []int{})
+
+		colIndex := generateFakeColIndex(0)
+		err := MarshalCSVWithoutHeaders([]Sample{{}}, dst, []int{}, colIndex)
 		if err != nil {
 			b.Fatal(err)
 		}

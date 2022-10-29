@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"io"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -69,7 +70,8 @@ func TestUnmarshalListOfStructsAfterMarshal(t *testing.T) {
 	innerWriter := csv.NewWriter(buffer)
 	innerWriter.Comma = '|'
 	csvWriter := NewSafeCSVWriter(innerWriter)
-	if err := MarshalCSV(inData, csvWriter, []int{}); err != nil {
+	colIndex := generateFakeColIndex(reflect.TypeOf(Option{}).NumField())
+	if err := MarshalCSV(inData, csvWriter, []int{}, colIndex); err != nil {
 		t.Fatalf("Error marshalling data to CSV: %#v", err)
 	}
 
