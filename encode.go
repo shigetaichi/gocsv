@@ -3,8 +3,10 @@ package gocsv
 import (
 	"errors"
 	"fmt"
+	"golang.org/x/exp/slices"
 	"io"
 	"reflect"
+	"sort"
 )
 
 var (
@@ -19,7 +21,7 @@ func newEncoder(out io.Writer) *encoder {
 	return &encoder{out}
 }
 
-func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool, removeFieldsIndexes []int) error {
+func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool, removeFieldsIndexes []int, colIndex []int) error {
 	// Get the first value. It wil determine the header structure.
 	firstValue, ok := <-c
 	if !ok {
@@ -49,6 +51,7 @@ func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool, rem
 				return err
 			}
 			csvHeadersLabels[j] = inInnerFieldValue
+			csvHeadersLabels = reorderColumns(csvHeadersLabels, colIndex)
 		}
 		if err := writer.Write(csvHeadersLabels); err != nil {
 			return err
@@ -71,7 +74,8 @@ func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool, rem
 	return writer.Error()
 }
 
-func writeTo(writer CSVWriter, in interface{}, omitHeaders bool, removeFieldsIndexes []int) error {
+func writeTo(writer CSVWriter, in interface{}, omitHeaders bool, removeFieldsIndexes []int, colIndex []int) error {
+	colIndex = changeToSequence(colIndex)
 	inValue, inType := getConcreteReflectValueAndType(in) // Get the concrete type (not pointer) (Slice<?> or Array<?>)
 	if err := ensureInType(inType); err != nil {
 		return err
@@ -88,6 +92,7 @@ func writeTo(writer CSVWriter, in interface{}, omitHeaders bool, removeFieldsInd
 	for i, fieldInfo := range inInnerStructInfo.Fields { // Used to write the header (first line) in CSV
 		csvHeadersLabels[i] = fieldInfo.getFirstKey()
 	}
+	csvHeadersLabels = reorderColumns(csvHeadersLabels, colIndex)
 	if !omitHeaders {
 		if err := writer.Write(csvHeadersLabels); err != nil {
 			return err
@@ -102,8 +107,8 @@ func writeTo(writer CSVWriter, in interface{}, omitHeaders bool, removeFieldsInd
 				return err
 			}
 			csvHeadersLabels[j] = inInnerFieldValue
-			csvHeadersLabels = reorderColumns(csvHeadersLabels, []uint{1, 2, 3, 4, 5})
 		}
+		csvHeadersLabels = reorderColumns(csvHeadersLabels, colIndex)
 		if err := writer.Write(csvHeadersLabels); err != nil {
 			return err
 		}
@@ -196,8 +201,23 @@ func getFilteredFields(fields []fieldInfo, removeFieldsIndexes []int) []fieldInf
 	return newFields
 }
 
-func reorderColumns(row []string, colIndex []uint) []string {
-	newLine := make([]string, len(colIndex))
+/*
+Make colIndex consist of sequential numbers starting from 0.
+Ex. [1,2,5,8,0] -> [1,2,3,4,0]
+*/
+func changeToSequence(colIndex []int) []int {
+	copiedColIndex := make([]int, len(colIndex))
+	copy(copiedColIndex, colIndex)
+	sort.Ints(copiedColIndex)
+
+	for i, v := range colIndex {
+		colIndex[i] = slices.Index(copiedColIndex, v)
+	}
+	return colIndex
+}
+
+func reorderColumns(row []string, colIndex []int) []string {
+	newLine := make([]string, len(row))
 	for from, to := range colIndex {
 		newLine[to] = row[from]
 	}
