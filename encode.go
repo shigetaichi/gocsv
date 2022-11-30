@@ -218,7 +218,7 @@ func changeToSequence(colIndex []int) []int {
 
 func reorderColumns(row []string, colIndex []int) []string {
 	newLine := make([]string, len(row))
-	for from, to := range colIndex {
+	for to, from := range colIndex {
 		newLine[to] = row[from]
 	}
 	return newLine
