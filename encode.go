@@ -22,6 +22,7 @@ func newEncoder(out io.Writer) *encoder {
 }
 
 func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool, removeFieldsIndexes []int, colIndex []int) error {
+	colIndex = changeToSequence(colIndex)
 	// Get the first value. It wil determine the header structure.
 	firstValue, ok := <-c
 	if !ok {
@@ -218,7 +219,7 @@ func changeToSequence(colIndex []int) []int {
 
 func reorderColumns(row []string, colIndex []int) []string {
 	newLine := make([]string, len(row))
-	for from, to := range colIndex {
+	for to, from := range colIndex {
 		newLine[to] = row[from]
 	}
 	return newLine
