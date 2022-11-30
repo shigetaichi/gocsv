@@ -22,6 +22,7 @@ func newEncoder(out io.Writer) *encoder {
 }
 
 func writeFromChan(writer CSVWriter, c <-chan interface{}, omitHeaders bool, removeFieldsIndexes []int, colIndex []int) error {
+	colIndex = changeToSequence(colIndex)
 	// Get the first value. It wil determine the header structure.
 	firstValue, ok := <-c
 	if !ok {
