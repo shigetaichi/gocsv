@@ -601,7 +601,9 @@ func Test_writeTo_nested_struct(t *testing.T) {
 			}},
 		},
 	}
-	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false); err != nil {
+
+	colIndex := generateFakeColIndex(6)
+	if err := writeTo(NewSafeCSVWriter(csv.NewWriter(e.out)), s, false, []int{}, colIndex); err != nil {
 		t.Fatal(err)
 	}
 
