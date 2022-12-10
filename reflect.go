@@ -42,6 +42,11 @@ var structInfoCache sync.Map
 var structMap = make(map[reflect.Type]*structInfo)
 var structMapMutex sync.RWMutex
 
+func getStructInfoNoCache(rType reflect.Type) *structInfo {
+	fieldsList := getFieldInfos(rType, []int{}, []string{})
+	return &structInfo{fieldsList}
+}
+
 func getStructInfo(rType reflect.Type) *structInfo {
 	stInfo, ok := structInfoCache.Load(rType)
 	if ok {
